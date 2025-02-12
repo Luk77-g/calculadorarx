@@ -1,2 +1,22 @@
-# calculadorarx
- Um site intuitivo e prático para simular investimentos em renda fixa. Calcule o montante final, visualize impostos recolhidos e acompanhe o crescimento do seu patrimônio ao longo do tempo por meio de gráficos ou tabelas. Ideal para quem deseja planejar suas finanças e entender o impacto dos juros compostos em diferentes tipos de investimentos.
+# Calculadora de Renda Fixa
+
+Este é um site que permite calcular o crescimento de investimentos com juros compostos.
+
+## Funcionalidades
+- Simulação de aportes mensais.
+- Exibição de resultados em gráficos.
+- Cálculo de impostos para diferentes tipos de investimentos.
+
+## Como acessar o site
+Acesse a calculadora diretamente [clicando aqui](https://luk77-g.github.io/calculadorarx/).
+
+## Tecnologias utilizadas
+- **HTML**: Estrutura do site.
+- **CSS**: Estilo visual.
+- **JavaScript**: Lógica para cálculo de juros compostos.
+
+## Contribuição
+Caso queira contribuir, sinta-se à vontade para abrir uma issue ou enviar um pull request.
+
+## Licença
+Este projeto está licenciado sob a licença MIT.
