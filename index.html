@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Renda Fixa</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      height: 100vh;
+      background-color: #7575cc;
+    }
+
+    .main-container {
+      display: flex;
+      width: 80%;
+      max-width: 1000px;
+      margin: 20px auto;
+      background: #b3cbfd;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    .container {
+      flex: 1;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .visualization-container {
+      flex: 2;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background-color: #fbfcff;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 1.8em;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin: 8px 0;
+      border: 1px solid #2828ff;
+      border-radius: 5px;
+      font-size: 1em;
+      box-sizing: border-box;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: #007bff;
+      box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    }
+
+    button {
+      background-color: #007bff;
+      color: #fff;
+      padding: 12px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      width: 100%;
+      font-size: 1em;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .result {
+      margin-top: 10px;
+      font-size: 1.2em;
+      color: #333;
+    }
+
+    .chart-container, .table-container {
+      flex: 1;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+    }
+
+    .chart-container.active, .table-container.active {
+      display: flex;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 90%;
+      margin: 20px auto;
+    }
+
+    table, th, td {
+      border: 1px solid #e4e4e4;
+    }
+
+    th, td {
+      padding: 8px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #007bff;
+      color: rgb(226, 226, 226);
+    }
+
+    .summary-container {
+      margin-bottom: 20px;
+      text-align: center;
+      color: #333;
+    }
+
+    .summary-container span {
+      display: block;
+      font-size: 1.2em;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <div class="container">
+      <h1>Calculadora de Renda Fixa</h1>
+      <form id="calculator-form">
+        <input type="number" id="principal" placeholder="Valor inicial (R$)" required>
+        <input type="number" id="monthly-contribution" placeholder="Aporte mensal (R$)" required>
+        <input type="number" id="rate" placeholder="Taxa de juros anual (%)" step="0.01" required>
+        <div>
+          <input type="number" id="time" placeholder="Tempo" required>
+          <select id="time-unit">
+            <option value="years" selected>Anos</option>
+            <option value="months">Meses</option>
+          </select>
+        </div>
+        <select id="investment-type" required>
+          <option value="" disabled selected>Escolha o tipo de investimento</option>
+          <option value="tesouro-direto">Tesouro Direto</option>
+          <option value="cdb">CDB</option>
+          <option value="lci-lca">LCI / LCA</option>
+          <option value="debentures">Debêntures</option>
+          <option value="fundo-renda-fixa">Fundos de Renda Fixa</option>
+          <option value="cri-cra">CRI / CRA</option>
+          <option value="poupanca">Poupança</option>
+        </select>
+        <select id="visualization-type">
+          <option value="graph" selected>Gráfico</option>
+          <option value="table">Tabela</option>
+        </select>
+        <button type="submit">Calcular</button>
+      </form>
+    </div>
+
+    <div class="visualization-container">
+      <!-- Nova seção para exibir o resumo -->
+      <div class="summary-container" id="summary-container">
+        <span id="final-amount">Montante final (líquido): R$ 0,00</span>
+        <span id="total-taxes">Total de impostos recolhidos: R$ 0,00</span>
+      </div>
+      
+      <div class="chart-container active" id="chart-container">
+        <canvas id="patrimonioChart"></canvas>
+      </div>
+
+      <div class="table-container" id="table-container">
+        <table id="result-table">
+          <thead>
+            <tr>
+              <th>Mês</th>
+              <th>Total Investido (R$)</th>
+              <th>Patrimônio Total (R$)</th>
+              <th>Juros Acumulados (R$)</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const ctx = document.getElementById('patrimonioChart').getContext('2d');
+    let patrimonioChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [
+          {
+            label: 'Total Investido (R$)',
+            data: [],
+            borderColor: '#28a745',
+            backgroundColor: 'rgba(40, 167, 69, 0.2)',
+            borderWidth: 2,
+            tension: 0.3,
+            fill: true
+          },
+          {
+            label: 'Patrimônio Total (R$)',
+            data: [],
+            borderColor: '#007bff',
+            backgroundColor: 'rgba(0, 123, 255, 0.2)',
+            borderWidth: 2,
+            tension: 0.3,
+            fill: true
+          },
+          {
+            label: 'Juros Acumulados (R$)',
+            data: [],
+            borderColor: '#ffc107',
+            backgroundColor: 'rgba(255, 193, 7, 0.2)',
+            borderWidth: 2,
+            tension: 0.3,
+            fill: true
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'top'
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return `R$ ${context.raw.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Meses'
+            }
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'Patrimônio (R$)'
+            },
+            ticks: {
+              callback: function(value) {
+                return `R$ ${value.toLocaleString('pt-BR')}`;
+              }
+            }
+          }
+        }
+      }
+    });
+
+    document.getElementById('calculator-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const principal = parseFloat(document.getElementById('principal').value);
+      const monthlyContribution = parseFloat(document.getElementById('monthly-contribution').value);
+      const rate = parseFloat(document.getElementById('rate').value) / 100;
+      const time = parseFloat(document.getElementById('time').value);
+      const timeUnit = document.getElementById('time-unit').value;
+      const investmentType = document.getElementById('investment-type').value;
+      const visualizationType = document.getElementById('visualization-type').value;
+
+      if (!investmentType) {
+        alert("Por favor, escolha um tipo de investimento.");
+        return;
+      }
+
+      const months = timeUnit === "years" ? time * 12 : time;
+      let montante = principal;
+      let patrimonioMensal = [montante];
+      let totalInvestidoMensal = [principal];
+      let jurosMensais = [0];
+      let labels = ['0'];
+      let totalImpostos = 0;
+
+      // Função para calcular o imposto com base no tipo de investimento
+      function calcularImposto(valor, tipo) {
+        if (["lci-lca", "cri-cra", "poupanca"].includes(tipo)) {
+          return 0; // Isentos de IR
+        }
+        let aliquota;
+        if (tipo === "tesouro-direto" || tipo === "cdb" || tipo === "fundo-renda-fixa") {
+          if (months <= 180) aliquota = 0.225;
+          else if (months <= 360) aliquota = 0.20;
+          else if (months <= 720) aliquota = 0.175;
+          else aliquota = 0.15;
+        } else if (tipo === "debentures") {
+          aliquota = 0.15; // Debêntures incentivadas têm IR fixo
+        } else {
+          aliquota = 0;
+        }
+        return valor * aliquota;
+      }
+
+      const tableBody = document.querySelector("#result-table tbody");
+      tableBody.innerHTML = ""; // Limpa a tabela antes de preencher
+
+      for (let i = 1; i <= months; i++) {
+        montante = (montante + monthlyContribution) * (1 + rate / 12);
+        const totalInvestido = principal + monthlyContribution * i;
+        const jurosAcumulados = montante - totalInvestido;
+        const imposto = calcularImposto(jurosAcumulados, investmentType);
+        totalImpostos += imposto;
+        const montanteLiquido = montante - imposto;
+
+        // Adiciona os dados na tabela
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${i}</td>
+          <td>${totalInvestido.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+          <td>${montanteLiquido.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+          <td>${(jurosAcumulados - imposto).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+        `;
+        tableBody.appendChild(row);
+
+        patrimonioMensal.push(montanteLiquido);
+        totalInvestidoMensal.push(totalInvestido);
+        jurosMensais.push(jurosAcumulados - imposto);
+        labels.push(i.toString());
+      }
+
+      const montanteFormatado = (montante - totalImpostos).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      const totalImpostosFormatado = totalImpostos.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+      patrimonioChart.data.labels = labels;
+      patrimonioChart.data.datasets[0].data = totalInvestidoMensal;
+      patrimonioChart.data.datasets[1].data = patrimonioMensal;
+      patrimonioChart.data.datasets[2].data = jurosMensais;
+      patrimonioChart.update();
+
+      // Atualiza os valores no resumo
+      document.getElementById('final-amount').textContent = `Montante final (líquido): ${montanteFormatado}`;
+      document.getElementById('total-taxes').textContent = `Total de impostos recolhidos: ${totalImpostosFormatado}`;
+
+      // Alterna entre gráfico e tabela
+      document.getElementById('chart-container').classList.toggle('active', visualizationType === 'graph');
+      document.getElementById('table-container').classList.toggle('active', visualizationType === 'table');
+    });
+  </script>
+</body>
+</html>
