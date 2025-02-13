@@ -1,44 +1,12 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-
   <link rel="icon" href="favicon.ico" type="image/x-icon">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Simule seus investimentos com juros compostos. Descubra o crescimento do seu dinheiro com aportes mensais e veja os resultados detalhados.">
   <meta name="keywords" content="calculadora de renda fixa, juros compostos, simulação de investimentos, investimentos, finanças pessoais">
   <meta name="author" content="Seu Nome">
-  <title>calculadorarx</title>
-
-  <!-- Open Graph Metatags -->
-  <meta property="og:title" content="calculadorarx">
-  <meta property="og:description" content="Simule seus investimentos com juros compostos. Descubra o crescimento do seu dinheiro com aportes mensais e veja os resultados detalhados.">
-  <meta property="og:image" content="URL_DA_IMAGEM_DO_SEU_SITE">
-  <meta property="og:url" content="https://seu-usuario.github.io/calculadorarx">
-  <meta name="twitter:card" content="summary_large_image">
-
-  <meta name="description" content="Simule seus investimentos com juros compostos. Descubra o crescimento do seu dinheiro com aportes mensais e veja os resultados detalhados.">
-
-
-  <link rel="icon" href="favicon.ico" type="image/x-icon">
-
-
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Calculadora de renda fixa para simular investimentos com juros compostos. Simule aportes mensais e veja o crescimento do seu dinheiro.">
-  <meta name="keywords" content="calculadora de renda fixa, juros compostos, simulação de investimentos, investimentos, finanças pessoais">
-  <meta name="author" content="Seu Nome">
-  <title>Calculadora de Renda Fixa</title>
-</head> 
-
-<meta property="og:title" content="Calculadora de Renda Fixa">
-<meta property="og:description" content="Simule seus investimentos com juros compostos e veja o crescimento do seu dinheiro.">
-<meta property="og:image" content="URL_DA_IMAGEM_DO_SEU_SITE">
-<meta property="og:url" content="https://seu-usuario.github.io/calculadora-renda-fixa">
-<meta name="twitter:card" content="summary_large_image">
-
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Calculadora de Renda Fixa</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
@@ -203,7 +171,6 @@
     </div>
 
     <div class="visualization-container">
-      <!-- Nova seção para exibir o resumo -->
       <div class="summary-container" id="summary-container">
         <span id="final-amount">Montante final (líquido): R$ 0,00</span>
         <span id="total-taxes">Total de impostos recolhidos: R$ 0,00</span>
@@ -326,22 +293,24 @@
       let totalImpostos = 0;
 
       // Função para calcular o imposto com base no tipo de investimento
-      function calcularImposto(valor, tipo) {
+      function calcularImposto(jurosAcumulados, tipo, meses) {
         if (["lci-lca", "cri-cra", "poupanca"].includes(tipo)) {
           return 0; // Isentos de IR
         }
+
         let aliquota;
         if (tipo === "tesouro-direto" || tipo === "cdb" || tipo === "fundo-renda-fixa") {
-          if (months <= 180) aliquota = 0.225;
-          else if (months <= 360) aliquota = 0.20;
-          else if (months <= 720) aliquota = 0.175;
-          else aliquota = 0.15;
+          if (meses <= 180) aliquota = 0.225; // Até 6 meses
+          else if (meses <= 360) aliquota = 0.20; // De 6 meses a 1 ano
+          else if (meses <= 720) aliquota = 0.175; // De 1 a 2 anos
+          else aliquota = 0.15; // Acima de 2 anos
         } else if (tipo === "debentures") {
           aliquota = 0.15; // Debêntures incentivadas têm IR fixo
         } else {
           aliquota = 0;
         }
-        return valor * aliquota;
+
+        return jurosAcumulados > 0 ? jurosAcumulados * aliquota : 0;
       }
 
       const tableBody = document.querySelector("#result-table tbody");
@@ -351,7 +320,7 @@
         montante = (montante + monthlyContribution) * (1 + rate / 12);
         const totalInvestido = principal + monthlyContribution * i;
         const jurosAcumulados = montante - totalInvestido;
-        const imposto = calcularImposto(jurosAcumulados, investmentType);
+        const imposto = calcularImposto(jurosAcumulados, investmentType, i); // Ajuste para considerar o mês atual
         totalImpostos += imposto;
         const montanteLiquido = montante - imposto;
 
