@@ -1,12 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <link rel="icon" href="favicon.ico" type="image/x-icon">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Simule seus investimentos com juros compostos. Descubra o crescimento do seu dinheiro com aportes mensais e veja os resultados detalhados.">
-  <meta name="keywords" content="calculadora de renda fixa, juros compostos, simulação de investimentos, investimentos, finanças pessoais">
-  <meta name="author" content="Seu Nome">
   <title>Calculadora de Renda Fixa</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
@@ -15,37 +11,20 @@
       margin: 0;
       padding: 0;
       display: flex;
-      justify-content: center;
+      justify-content: flex-start;
       align-items: flex-start;
       height: 100vh;
-      background-color: #7575cc;
-    }
-
-    .main-container {
-      display: flex;
-      width: 80%;
-      max-width: 1000px;
-      margin: 20px auto;
-      background: #b3cbfd;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
+      background-color: #f4f4f9;
     }
 
     .container {
-      flex: 1;
+      background: #fff;
       padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      width: 300px;
+      margin: 20px;
       text-align: center;
-    }
-
-    .visualization-container {
-      flex: 2;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      background-color: #fbfcff;
-      padding: 20px;
     }
 
     h1 {
@@ -54,17 +33,17 @@
       color: #333;
     }
 
-    input, select {
+    input {
       width: 100%;
-      padding: 8px;
-      margin: 8px 0;
-      border: 1px solid #2828ff;
+      padding: 12px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
       border-radius: 5px;
       font-size: 1em;
       box-sizing: border-box;
     }
 
-    input:focus, select:focus {
+    input:focus {
       outline: none;
       border-color: #007bff;
       box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
@@ -87,113 +66,40 @@
     }
 
     .result {
-      margin-top: 10px;
+      margin-top: 20px;
       font-size: 1.2em;
       color: #333;
     }
 
-    .chart-container, .table-container {
+    .chart-container {
       flex: 1;
-      display: none;
+      display: flex;
       justify-content: center;
       align-items: center;
-      width: 100%;
+      height: 100%;
     }
 
-    .chart-container.active, .table-container.active {
-      display: flex;
-    }
-
-    table {
-      border-collapse: collapse;
-      width: 90%;
-      margin: 20px auto;
-    }
-
-    table, th, td {
-      border: 1px solid #e4e4e4;
-    }
-
-    th, td {
-      padding: 8px;
-      text-align: center;
-    }
-
-    th {
-      background-color: #007bff;
-      color: rgb(226, 226, 226);
-    }
-
-    .summary-container {
-      margin-bottom: 20px;
-      text-align: center;
-      color: #333;
-    }
-
-    .summary-container span {
-      display: block;
-      font-size: 1.2em;
-      font-weight: bold;
+    canvas {
+      max-width: 600px;
+      max-height: 400px;
     }
   </style>
 </head>
 <body>
-  <div class="main-container">
-    <div class="container">
-      <h1>Calculadora de Renda Fixa</h1>
-      <form id="calculator-form">
-        <input type="number" id="principal" placeholder="Valor inicial (R$)" required>
-        <input type="number" id="monthly-contribution" placeholder="Aporte mensal (R$)" required>
-        <input type="number" id="rate" placeholder="Taxa de juros anual (%)" step="0.01" required>
-        <div>
-          <input type="number" id="time" placeholder="Tempo" required>
-          <select id="time-unit">
-            <option value="years" selected>Anos</option>
-            <option value="months">Meses</option>
-          </select>
-        </div>
-        <select id="investment-type" required>
-          <option value="" disabled selected>Escolha o tipo de investimento</option>
-          <option value="tesouro-direto">Tesouro Direto</option>
-          <option value="cdb">CDB</option>
-          <option value="lci-lca">LCI / LCA</option>
-          <option value="debentures">Debêntures</option>
-          <option value="fundo-renda-fixa">Fundos de Renda Fixa</option>
-          <option value="cri-cra">CRI / CRA</option>
-          <option value="poupanca">Poupança</option>
-        </select>
-        <select id="visualization-type">
-          <option value="graph" selected>Gráfico</option>
-          <option value="table">Tabela</option>
-        </select>
-        <button type="submit">Calcular</button>
-      </form>
-    </div>
+  <div class="container">
+    <h1>Calculadora de Renda Fixa</h1>
+    <form id="calculator-form">
+      <input type="number" id="principal" placeholder="Valor inicial (R$)" required>
+      <input type="number" id="monthly-contribution" placeholder="Aporte mensal (R$)" required>
+      <input type="number" id="rate" placeholder="Taxa de juros anual (%)" step="0.01" required>
+      <input type="number" id="time" placeholder="Tempo (anos)" required>
+      <button type="submit">Calcular</button>
+    </form>
+    <div class="result" id="result"></div>
+  </div>
 
-    <div class="visualization-container">
-      <div class="summary-container" id="summary-container">
-        <span id="final-amount">Montante final (líquido): R$ 0,00</span>
-        <span id="total-taxes">Total de impostos recolhidos: R$ 0,00</span>
-      </div>
-      
-      <div class="chart-container active" id="chart-container">
-        <canvas id="patrimonioChart"></canvas>
-      </div>
-
-      <div class="table-container" id="table-container">
-        <table id="result-table">
-          <thead>
-            <tr>
-              <th>Mês</th>
-              <th>Total Investido (R$)</th>
-              <th>Patrimônio Total (R$)</th>
-              <th>Juros Acumulados (R$)</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
+  <div class="chart-container">
+    <canvas id="patrimonioChart"></canvas>
   </div>
 
   <script>
@@ -201,11 +107,11 @@
     let patrimonioChart = new Chart(ctx, {
       type: 'line',
       data: {
-        labels: [],
+        labels: [], // Labels para os meses
         datasets: [
           {
             label: 'Total Investido (R$)',
-            data: [],
+            data: [], // Dados do total investido
             borderColor: '#28a745',
             backgroundColor: 'rgba(40, 167, 69, 0.2)',
             borderWidth: 2,
@@ -214,7 +120,7 @@
           },
           {
             label: 'Patrimônio Total (R$)',
-            data: [],
+            data: [], // Dados do patrimônio total
             borderColor: '#007bff',
             backgroundColor: 'rgba(0, 123, 255, 0.2)',
             borderWidth: 2,
@@ -223,7 +129,7 @@
           },
           {
             label: 'Juros Acumulados (R$)',
-            data: [],
+            data: [], // Dados dos juros acumulados
             borderColor: '#ffc107',
             backgroundColor: 'rgba(255, 193, 7, 0.2)',
             borderWidth: 2,
@@ -271,91 +177,44 @@
     document.getElementById('calculator-form').addEventListener('submit', function(event) {
       event.preventDefault();
 
+      // Captura os valores de entrada
       const principal = parseFloat(document.getElementById('principal').value);
       const monthlyContribution = parseFloat(document.getElementById('monthly-contribution').value);
       const rate = parseFloat(document.getElementById('rate').value) / 100;
       const time = parseFloat(document.getElementById('time').value);
-      const timeUnit = document.getElementById('time-unit').value;
-      const investmentType = document.getElementById('investment-type').value;
-      const visualizationType = document.getElementById('visualization-type').value;
 
-      if (!investmentType) {
-        alert("Por favor, escolha um tipo de investimento.");
-        return;
-      }
-
-      const months = timeUnit === "years" ? time * 12 : time;
+      // Variáveis para cálculo
+      const months = time * 12;
       let montante = principal;
       let patrimonioMensal = [montante];
       let totalInvestidoMensal = [principal];
       let jurosMensais = [0];
       let labels = ['0'];
-      let totalImpostos = 0;
 
-      // Função para calcular o imposto com base no tipo de investimento
-      function calcularImposto(jurosAcumulados, tipo, meses) {
-        if (["lci-lca", "cri-cra", "poupanca"].includes(tipo)) {
-          return 0; // Isentos de IR
-        }
-
-        let aliquota;
-        if (tipo === "tesouro-direto" || tipo === "cdb" || tipo === "fundo-renda-fixa") {
-          if (meses <= 180) aliquota = 0.225; // Até 6 meses
-          else if (meses <= 360) aliquota = 0.20; // De 6 meses a 1 ano
-          else if (meses <= 720) aliquota = 0.175; // De 1 a 2 anos
-          else aliquota = 0.15; // Acima de 2 anos
-        } else if (tipo === "debentures") {
-          aliquota = 0.15; // Debêntures incentivadas têm IR fixo
-        } else {
-          aliquota = 0;
-        }
-
-        return jurosAcumulados > 0 ? jurosAcumulados * aliquota : 0;
-      }
-
-      const tableBody = document.querySelector("#result-table tbody");
-      tableBody.innerHTML = ""; // Limpa a tabela antes de preencher
-
+      // Calcula o montante e a evolução mensal
       for (let i = 1; i <= months; i++) {
         montante = (montante + monthlyContribution) * (1 + rate / 12);
         const totalInvestido = principal + monthlyContribution * i;
         const jurosAcumulados = montante - totalInvestido;
-        const imposto = calcularImposto(jurosAcumulados, investmentType, i); // Ajuste para considerar o mês atual
-        totalImpostos += imposto;
-        const montanteLiquido = montante - imposto;
 
-        // Adiciona os dados na tabela
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${i}</td>
-          <td>${totalInvestido.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
-          <td>${montanteLiquido.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
-          <td>${(jurosAcumulados - imposto).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
-        `;
-        tableBody.appendChild(row);
-
-        patrimonioMensal.push(montanteLiquido);
+        patrimonioMensal.push(montante);
         totalInvestidoMensal.push(totalInvestido);
-        jurosMensais.push(jurosAcumulados - imposto);
+        jurosMensais.push(jurosAcumulados);
         labels.push(i.toString());
       }
 
-      const montanteFormatado = (montante - totalImpostos).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-      const totalImpostosFormatado = totalImpostos.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      // Formata o resultado para o padrão brasileiro
+      const montanteFormatado = montante.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
+      // Atualiza o gráfico
       patrimonioChart.data.labels = labels;
-      patrimonioChart.data.datasets[0].data = totalInvestidoMensal;
-      patrimonioChart.data.datasets[1].data = patrimonioMensal;
-      patrimonioChart.data.datasets[2].data = jurosMensais;
+      patrimonioChart.data.datasets[0].data = totalInvestidoMensal; // Total investido
+      patrimonioChart.data.datasets[1].data = patrimonioMensal; // Patrimônio total
+      patrimonioChart.data.datasets[2].data = jurosMensais; // Juros acumulados
       patrimonioChart.update();
 
-      // Atualiza os valores no resumo
-      document.getElementById('final-amount').textContent = `Montante final (líquido): ${montanteFormatado}`;
-      document.getElementById('total-taxes').textContent = `Total de impostos recolhidos: ${totalImpostosFormatado}`;
-
-      // Alterna entre gráfico e tabela
-      document.getElementById('chart-container').classList.toggle('active', visualizationType === 'graph');
-      document.getElementById('table-container').classList.toggle('active', visualizationType === 'table');
+      // Exibe o resultado
+      document.getElementById('result').textContent = `Montante final: ${montanteFormatado}`;
     });
   </script>
 </body>
